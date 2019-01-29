@@ -79,9 +79,16 @@ app.post('/links',
 /************************************************************/
 
 app.post('/signup', (req, res, next) => {
-  console.log(req.body);
-  models.Users.create(req.body);
-  next();
+  return models.Users.create(req.body)
+    .then(newUser => {
+      res.status(201).redirect('/');
+    })
+    .error(err => {
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.redirect('/signup');
+      }
+      res.status(500).send(err);
+    });
 });
 
 
