@@ -85,9 +85,28 @@ app.post('/signup', (req, res, next) => {
     })
     .error(err => {
       if (err.code === 'ER_DUP_ENTRY') {
-        res.redirect('/signup');
+        res.status(400).redirect('/signup');
+      } else {
+        res.status(500).send(err);
       }
-      res.status(500).send(err);
+    });
+});
+
+app.post('/login', (req, res, next) => {
+  return models.Users.get({ username: req.body.username })
+    .then(results => {
+      if (results) {
+        var attemptedPassword = req.body.password;
+        var hashedPassword = results.password;
+        var salt = results.salt;
+        if (models.Users.compare(attemptedPassword, hashedPassword, salt)) {
+          res.status(200).redirect('/');
+        } else {
+          res.status(400).redirect('/login');
+        }
+      } else {
+        res.status(500).redirect('/login');
+      }
     });
 });
 
